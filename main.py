@@ -227,7 +227,6 @@ def create_date_markup(duration_hours):
     today = datetime.datetime.now(UTC_PLUS_4)
     available_dates = []
 
-    # Словарь для перевода дней недели на русский язык
     weekdays_ru = {
         "Mon": "Пн",
         "Tue": "Вт",
@@ -258,7 +257,7 @@ def get_date(message):
         return
 
     try:
-        # Убираем день недели из текста перед преобразованием
+        # Убираем день недели
         date_str = re.sub(r'^[А-Яа-я]+\s', '', message.text)
         date = datetime.datetime.strptime(date_str, "%d.%m.%y").replace(tzinfo=UTC_PLUS_4)
     except ValueError:
@@ -351,7 +350,6 @@ def get_time(message):
 
 def save_to_google_sheets(summary, description, username):
     try:
-        # Добавляем строку с новой структурой: "Модель | Телефон | Username | Статус"
         sheet.append_row([summary, description, username, "Новый"])  
         logging.info("Лид успешно сохранен в Google Sheets")
     except Exception as e:
@@ -359,12 +357,12 @@ def save_to_google_sheets(summary, description, username):
 
 def update_google_sheet_status(summary, description, status):
     try:
-        # Найти строку с соответствующим summary и description
+    
         cell = sheet.find(summary)
         row = cell.row
-        # Проверяем, что номер телефона совпадает
+        # Проверяем что номер телефона совпадает
         if sheet.cell(row, 2).value == description:
-            sheet.update_cell(row, 4, status)  # Обновляем статус в четвертом столбце
+            sheet.update_cell(row, 4, status)  
             logging.info(f"Статус обновлен в Google Sheets: {status}")
         else:
             logging.error("Не удалось найти соответствующую запись в Google Sheets.")
@@ -428,14 +426,14 @@ def handle_callback_query(call):
         bot.delete_message(chat_id=admin_id, message_id=call.message.message_id)
         logging.info(f"Заявка {request_id} одобрена")
 
-        # Обновляем статус в Google Sheets
+
         update_google_sheet_status(summary, description, "Одобрено")
     elif action == "reject":
         bot.delete_message(chat_id=admin_id, message_id=call.message.message_id)
         bot.send_message(user_id, "Ваша заявка отклонена.")
         logging.info(f"Заявка {request_id} отклонена")
 
-        # Обновляем статус в Google Sheets
+
         update_google_sheet_status(summary, description, "Отклонено")
     elif action == "change":
         bot.delete_message(chat_id=admin_id, message_id=call.message.message_id)
@@ -451,7 +449,7 @@ def get_admin_date(message, request_id, duration_hours, summary, description, se
         return
 
     try:
-        # Убираем день недели и лишние пробелы из текста перед преобразованием
+    
         date_str = re.sub(r'^[А-Яа-я]+\s+', '', message.text.strip())
         date = datetime.datetime.strptime(date_str, "%d.%m.%y").replace(tzinfo=UTC_PLUS_4)
     except ValueError:
